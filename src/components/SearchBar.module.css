@@ -1,0 +1,24 @@
+header {
+  background-color: #213547;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.search {
+  display: flex;
+  justify-content: center;
+}
+
+.input {
+  width: 444px;
+  padding: 10px;
+  outline: none;
+}
+
+.button {
+  background-color: #213547;
+  border: none;
+}
+.button:focus {
+  outline: none;
+}

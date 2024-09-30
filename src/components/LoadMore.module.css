@@ -1,0 +1,11 @@
+.load {
+  margin: 20px 0;
+}
+
+.button {
+  background-color: #213547;
+  color: white;
+}
+.button:focus {
+  outline: none;
+}

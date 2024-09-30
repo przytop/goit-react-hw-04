@@ -1,0 +1,32 @@
+.button {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0);
+  border: none;
+  z-index: 999;
+  cursor: pointer;
+}
+.button:focus {
+  outline: none;
+}
+
+.img {
+  max-width: 100%;
+  max-height: 95vh;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.info {
+  position: fixed;
+  bottom: 0;
+  color: white;
+  background-color: rgba(33, 53, 71, 0.7);
+  width: 100%;
+  padding: 20px;
+}
+
+.text {
+  padding: 0 5px 10px 5px;
+}
