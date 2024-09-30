@@ -1,6 +1,5 @@
 import toast, { Toaster } from "react-hot-toast";
 import { FaSearch } from "react-icons/fa";
-
 import css from "./SearchBar.module.css";
 
 export default function SearchBar({ onSearch }) {

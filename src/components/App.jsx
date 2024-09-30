@@ -21,12 +21,11 @@ export default function App() {
   const handleSearch = async (input) => {
     try {
       setError(false);
+      setGallery([]);
       setLoading(true);
       setInput(input);
-      setGallery([]);
 
       await new Promise((resolve) => setTimeout(resolve, 300));
-
       const data = await fetchGalleryWithInput(input, 1);
       setGallery(data.hits);
       setTotalPages(data.totalPages);
@@ -48,6 +47,7 @@ export default function App() {
         });
       }, 1);
     };
+
     try {
       setLoading(true);
       scrollDown();
