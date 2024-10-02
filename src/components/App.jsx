@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useRef } from "react";
 import "./App.css";
 import SearchBar from "./SearchBar";
 import fetchGalleryWithInput from "../gallery-api";
@@ -8,37 +8,64 @@ import Loader from "./Loader";
 import LoadMore from "./LoadMore";
 import ImageModal from "./ImageModal";
 
+const reducer = (state, { payload }) => ({
+  ...state,
+  ...payload,
+});
+
 export default function App() {
-  const [gallery, setGallery] = useState([]);
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [currentImage, setCurrentImage] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  const [state, dispatch] = useReducer(reducer, {
+    gallery: [],
+    input: "",
+    error: null,
+    loading: false,
+    modalIsOpen: false,
+    currentImage: null,
+    currentPage: 1,
+    totalPages: 0,
+  });
 
-  const handleSearch = async (input) => {
-    try {
-      setError(false);
-      setGallery([]);
-      setLoading(true);
-      setInput(input);
+  const {
+    gallery,
+    input,
+    error,
+    loading,
+    modalIsOpen,
+    currentImage,
+    currentPage,
+    totalPages,
+  } = state;
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const data = await fetchGalleryWithInput(input, 1);
-      setGallery(data.hits);
-      setTotalPages(data.totalPages);
-      setCurrentPage(1);
-    } catch (error) {
-      console.log(error);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
+  const debounceRef = useRef(null);
+
+  const handleSearch = (input) => {
+    dispatch({
+      payload: { gallery: [], error: null, loading: true, input },
+    });
+
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const data = await fetchGalleryWithInput(input, 1);
+        dispatch({
+          payload: {
+            gallery: data.hits,
+            totalPages: data.totalPages,
+            currentPage: 1,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+        dispatch({ payload: { error: error.message } });
+      } finally {
+        dispatch({ payload: { loading: false } });
+      }
+    }, 500);
   };
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = () => {
+    if (loading) return;
+
     const scrollDown = () => {
       setTimeout(() => {
         window.scrollTo({
@@ -48,39 +75,43 @@ export default function App() {
       }, 1);
     };
 
-    try {
-      setLoading(true);
-      scrollDown();
+    dispatch({ payload: { error: null, loading: true } });
+    scrollDown();
 
-      const nextPage = currentPage + 1;
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const data = await fetchGalleryWithInput(input, nextPage);
-      setGallery((prevGallery) => [...prevGallery, ...data.hits]);
-      setCurrentPage(nextPage);
-    } catch (error) {
-      console.log(error);
-      setError(true);
-    } finally {
-      setLoading(false);
-      scrollDown();
-    }
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const nextPage = currentPage + 1;
+        const data = await fetchGalleryWithInput(input, nextPage);
+        dispatch({
+          payload: {
+            gallery: [...gallery, ...data.hits],
+            currentPage: nextPage,
+          },
+        });
+      } catch (error) {
+        console.log(error);
+        dispatch({ payload: { error: error.message } });
+      } finally {
+        dispatch({ payload: { loading: false } });
+        scrollDown();
+      }
+    }, 500);
   };
 
   const openModal = (image) => {
-    setCurrentImage(image);
-    setModalIsOpen(true);
+    dispatch({ payload: { modalIsOpen: true, currentImage: image } });
   };
 
   const closeModal = () => {
-    setModalIsOpen(false);
-    setCurrentImage(null);
+    dispatch({ payload: { modalIsOpen: false, currentImage: null } });
   };
 
   return (
     <>
       <SearchBar onSearch={handleSearch} />
       {error ? (
-        <ErrorMessage />
+        <ErrorMessage error={error} />
       ) : (
         gallery.length > 0 && (
           <ImageGallery openModal={openModal} gallery={gallery} />
