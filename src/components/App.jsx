@@ -8,9 +8,9 @@ import Loader from "./Loader";
 import LoadMore from "./LoadMore";
 import ImageModal from "./ImageModal";
 
-const reducer = (state, { payload }) => ({
+const reducer = (state, action) => ({
   ...state,
-  ...payload,
+  ...action,
 });
 
 export default function App() {
@@ -39,32 +39,28 @@ export default function App() {
   const debounceRef = useRef(null);
 
   const handleSearch = (input) => {
-    dispatch({
-      payload: { gallery: [], error: null, loading: true, input },
-    });
+    dispatch({ gallery: [], error: null, loading: true, input });
 
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
         const data = await fetchGalleryWithInput(input, 1);
         dispatch({
-          payload: {
-            gallery: data.hits,
-            totalPages: data.totalPages,
-            currentPage: 1,
-          },
+          gallery: data.hits,
+          totalPages: data.totalPages,
+          currentPage: 1,
         });
       } catch (error) {
         console.log(error);
-        dispatch({ payload: { error: error.message } });
+        dispatch({ error: error.message });
       } finally {
-        dispatch({ payload: { loading: false } });
+        dispatch({ loading: false });
       }
     }, 500);
   };
 
   const handleLoadMore = () => {
-    if (loading) return;
+    if (loading) return; // Prevents triggering a new request while a previous one is still loading
 
     const scrollDown = () => {
       setTimeout(() => {
@@ -75,7 +71,7 @@ export default function App() {
       }, 1);
     };
 
-    dispatch({ payload: { error: null, loading: true } });
+    dispatch({ error: null, loading: true });
     scrollDown();
 
     clearTimeout(debounceRef.current);
@@ -84,27 +80,25 @@ export default function App() {
         const nextPage = currentPage + 1;
         const data = await fetchGalleryWithInput(input, nextPage);
         dispatch({
-          payload: {
-            gallery: [...gallery, ...data.hits],
-            currentPage: nextPage,
-          },
+          gallery: [...gallery, ...data.hits],
+          currentPage: nextPage,
         });
       } catch (error) {
         console.log(error);
-        dispatch({ payload: { error: error.message } });
+        dispatch({ error: error.message });
       } finally {
-        dispatch({ payload: { loading: false } });
+        dispatch({ loading: false });
         scrollDown();
       }
     }, 500);
   };
 
   const openModal = (image) => {
-    dispatch({ payload: { modalIsOpen: true, currentImage: image } });
+    dispatch({ modalIsOpen: true, currentImage: image });
   };
 
   const closeModal = () => {
-    dispatch({ payload: { modalIsOpen: false, currentImage: null } });
+    dispatch({ modalIsOpen: false, currentImage: null });
   };
 
   return (
